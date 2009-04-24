@@ -1,10 +1,15 @@
+
+
+#include "OgreVideoTexture.h"
 #include "ExampleApplication.h"
-//#include <boost/interprocess/ipc/message_queue.hpp>
+
+
+
 
 class TutorialFrameListener : public ExampleFrameListener
 {
 public:
-	TutorialFrameListener(RenderWindow* win, Camera* cam, SceneManager *sceneMgr)
+    TutorialFrameListener(RenderWindow* win, Camera* cam, SceneManager *sceneMgr, SceneNode *canvasNode, OgreVideoTexture *_videoTexture)
 		: ExampleFrameListener(win, cam, false, false)
 	{
 		// key and mouse state tracking
@@ -19,62 +24,41 @@ public:
 		mRotate = 0.13;
 		mMove = 250;
 
-		
-		mq = new boost::interprocess::message_queue(boost::interprocess::open_only, "message_queue");
+		mCanvasNode = canvasNode;
+        mVideoTexture = _videoTexture;
+	
 	}
 
-	// Overriding the default processUnbufferedKeyInput so the key updates we define
-	// later on work as intended.
-	bool processUnbufferedKeyInput(const FrameEvent& evt)
-	{
-		return true;
-	}
+	//// Overriding the default processUnbufferedKeyInput so the key updates we define
+	//// later on work as intended.
+	//bool processUnbufferedKeyInput(const FrameEvent& evt)
+	//{
+	//	return true;
+	//}
 
-	// Overriding the default processUnbufferedMouseInput so the Mouse updates we define
-	// later on work as intended. 
-	bool processUnbufferedMouseInput(const FrameEvent& evt)
-	{
-		return true;
-	}
+	//// Overriding the default processUnbufferedMouseInput so the Mouse updates we define
+	//// later on work as intended. 
+	//bool processUnbufferedMouseInput(const FrameEvent& evt)
+	//{
+	//	return true;
+	//}
 
 	bool frameStarted(const FrameEvent &evt)
 	{
-		//mCamNode->getParentSceneNode()->yaw(Degree(1.0), SceneNode::TS_PARENT);
-		processMQEvents();
+		//mCamNode->getParentSceneNode()->yaw(Degree(1.0) * evt.timeSinceLastFrame * 200, SceneNode::TS_PARENT);
+        //mCanvasNode->roll(Degree(1.0) * evt.timeSinceLastFrame * 100);
+
+        mVideoTexture->nextFrame();
 
 		mMouse->capture();
 		mKeyboard->capture();
+
 
 		if(mKeyboard->isKeyDown(OIS::KC_ESCAPE))
 			return false;
 
 		return true;
-	}
 
-
-	//void processMQEvents()
-	//{
-	//	unsigned int priority;
-	//	std::size_t recvd_size;
-
-	//	int num = mq->get_num_msg();
-	//	
-	//	int number;
-	//	if(num > 0)
-	//	{
-	//		//for(int i = 0; i < 10; ++i)
-	//		//{
-	//		//	int number;
-	//		//	//number = buffer[i]
-	//		//	//mq->receive(&number, sizeof(number), recvd_size, priority);
-	//		//}
-	//		mq->receive(&number, sizeof(number), recvd_size, priority);
-	//		mCamNode->getParentSceneNode()->yaw(Degree(float(number)), SceneNode::TS_PARENT);
-	//	}
-	//	else
-	//	{
-	//		; //mCamNode->translate(Vector3(0, 10, 0));
-	//	}
 	}
 
 protected:
@@ -84,8 +68,8 @@ protected:
 	Real mMove;            // The movement constant
 	SceneManager *mSceneMgr;   // The current SceneManager
 	SceneNode *mCamNode;   // The SceneNode the camera is currently attached to
-
-	boost::interprocess::message_queue *mq;
+    SceneNode *mCanvasNode;
+    OgreVideoTexture *mVideoTexture;
 	char *mBuffer;
 };
 
@@ -109,11 +93,36 @@ protected:
 
 	void createScene(void)
 	{
+        
 		mSceneMgr->setAmbientLight(ColourValue(0.25, 0.25, 0.25));
 
-		Entity *ent = mSceneMgr->createEntity("Ninja", "cube.mesh");
-		SceneNode *node = mSceneMgr->getRootSceneNode()->createChildSceneNode("NinjaNode", Vector3(0, 100, 0));
-		node->attachObject(ent);
+
+        mCanvas = mSceneMgr->createManualObject("video canvas");
+        mCanvas->begin("BaseWhiteNoLighting", RenderOperation::OT_TRIANGLE_STRIP);
+        //mCanvas->position(-0.65,  0.5, 0);   mCanvas->textureCoord(    0, 0.9375);
+        //mCanvas->position( 0.65,  0.5, 0);   mCanvas->textureCoord(0.625, 0.9375);
+        //mCanvas->position(-0.65, -0.5, 0);   mCanvas->textureCoord(    0,      0);
+        //mCanvas->position( 0.65, -0.5, 0);   mCanvas->textureCoord(0.625,      0);
+
+    
+        float uMin = 0, vMin = 0;
+        float uMax = 640.0/1024, vMax = 480.0/1024;
+
+        mCanvas->position(-0.65,  0.5, 0);   mCanvas->textureCoord(uMin, vMax);
+        mCanvas->position( 0.65,  0.5, 0);   mCanvas->textureCoord(uMax, vMax);
+        mCanvas->position(-0.65, -0.5, 0);   mCanvas->textureCoord(uMin, vMin);
+        mCanvas->position( 0.65, -0.5, 0);   mCanvas->textureCoord(uMax, vMin);
+        mCanvas->end();
+
+
+        SceneNode *node = mSceneMgr->getRootSceneNode()->createChildSceneNode("Canvas Node", Vector3(0, 100, 0));
+        node->attachObject(mCanvas);
+        node->scale(100, 100, 100);
+        node->yaw(Degree(180.0));
+        node->roll(Degree(180.0));
+        mCanvasNode = node;
+
+
 
 		Light *light = mSceneMgr->createLight("Light1");
 		light->setType(Light::LT_POINT);
@@ -123,20 +132,31 @@ protected:
 
 		// Create the scene node
 		SceneNode *yawnode = mSceneMgr->getRootSceneNode()->createChildSceneNode("YawCamNode1");
-		node = yawnode->createChildSceneNode("CamNode1", Vector3(-400, 200, 400));
-		node->yaw(Degree(-45));
+		node = yawnode->createChildSceneNode("CamNode1", Vector3(0, 100, 400));
 		node->attachObject(mCamera);
 
-		// create the second camera node
-		node = mSceneMgr->getRootSceneNode()->createChildSceneNode("CamNode2", Vector3(0, 200, 400));
+
+        mVideoTexture = new OgreVideoTexture("indochine.avi");
+        mCanvas->setMaterialName(0, mVideoTexture->getMaterialName());
+        
 	}
+
+
+
+
+
 
 	void createFrameListener(void)
 	{
 		// Create the FrameListener
-		mFrameListener = new TutorialFrameListener(mWindow, mCamera, mSceneMgr);
+		mFrameListener = new TutorialFrameListener(mWindow, mCamera, mSceneMgr, mCanvasNode, mVideoTexture);
 		mRoot->addFrameListener(mFrameListener);
 	}
+
+protected:
+    SceneNode *mCanvasNode;
+    ManualObject *mCanvas;
+    OgreVideoTexture *mVideoTexture;
 };
 
 #if OGRE_PLATFORM == PLATFORM_WIN32 || OGRE_PLATFORM == OGRE_PLATFORM_WIN32

@@ -10,7 +10,9 @@ OgreVideoTexture::OgreVideoTexture(const Ogre::String _filename)
     ,mCurrentVideoFrame(NULL)
     ,mCurrentFrameIndex(0)
 {
-    mLog = Ogre::LogManager::getSingletonPtr()->createLog("OgreVideoTexture.log");
+    mLog = Ogre::LogManager::getSingletonPtr()->createLog("OgreVideoTexture_"+_filename+".log");
+    mMaterialName = "Video Material "+ mVideoFileName;
+    mTextureName = "Video Texture " + mVideoFileName;
     _init();
 }
 //------------------------------------------------------------------------------
@@ -34,7 +36,7 @@ void OgreVideoTexture::_init()
 
     _updateTextureFromImage(mCurrentVideoFrame);
 
-    mMaterialName = "Video Texture "+ mVideoFileName;
+
     mTimeSinceLastUpdate.reset();
 
      
@@ -100,10 +102,11 @@ void OgreVideoTexture::_createTextureFromCapture(CvCapture *_capture)
     w = cvGetCaptureProperty(_capture, CV_CAP_PROP_FRAME_WIDTH);
     h = cvGetCaptureProperty(_capture, CV_CAP_PROP_FRAME_HEIGHT);
 
+    Ogre::TextureManager *TM = Ogre::TextureManager::getSingletonPtr();
 
     // Create the texture
     mVideoTexture = Ogre::TextureManager::getSingleton().createManual(
-        "DynamicTexture", // name
+        mTextureName, // name
         Ogre::ResourceGroupManager::DEFAULT_RESOURCE_GROUP_NAME,
         Ogre::TEX_TYPE_2D,      // type
         1024, 1024,         // width & height
@@ -118,7 +121,7 @@ void OgreVideoTexture::_createTextureFromCapture(CvCapture *_capture)
         mMaterialName, // name
         Ogre::ResourceGroupManager::DEFAULT_RESOURCE_GROUP_NAME);
 
-    mVideoMaterial->getTechnique(0)->getPass(0)->createTextureUnitState("DynamicTexture");
+    mVideoMaterial->getTechnique(0)->getPass(0)->createTextureUnitState(mTextureName);
     //mVideoMaterial->getTechnique(0)->getPass(0)->setSceneBlending(Ogre::SBT_TRANSPARENT_ALPHA);
 
 }

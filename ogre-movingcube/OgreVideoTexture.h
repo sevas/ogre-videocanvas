@@ -36,7 +36,7 @@ protected:
     IplImage *mCurrentVideoFrame;
     Ogre::TexturePtr mVideoTexture;
     Ogre::MaterialPtr mVideoMaterial;
-    Ogre::String mMaterialName;
+    Ogre::String mTextureName, mMaterialName;
     Ogre::Timer mTimeSinceLastUpdate;
     int mFrameCount, mCurrentFrameIndex;
     Ogre::Log *mLog;

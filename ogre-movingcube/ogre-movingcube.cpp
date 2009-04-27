@@ -1,6 +1,10 @@
 
 
-#include "OgreVideoTexture.h"
+#include <map>
+#include <boost/foreach.hpp>
+
+#include "OgreVideoCanvas.h"
+//#include "OgreVideoTexture.h"
 #include "ExampleApplication.h"
 
 
@@ -9,7 +13,10 @@
 class TutorialFrameListener : public ExampleFrameListener
 {
 public:
-    TutorialFrameListener(RenderWindow* win, Camera* cam, SceneManager *sceneMgr, SceneNode *canvasNode, OgreVideoTexture *_videoTexture)
+    TutorialFrameListener(RenderWindow* win, Camera* cam, SceneManager *sceneMgr
+                          , SceneNode *canvasNode
+                          , OgreVideoCanvas *_videoCanvas
+                          , OgreVideoCanvas *_videoCanvas2)
 		: ExampleFrameListener(win, cam, false, false)
 	{
 		// key and mouse state tracking
@@ -25,29 +32,16 @@ public:
 		mMoveSpeed = 500;
 
 		mCanvasNode = canvasNode;
-        mVideoTexture = _videoTexture;
+        mVideoCanvas = _videoCanvas;
+        mVideoCanvas2 = _videoCanvas2;
 	}
 
-	//// Overriding the default processUnbufferedKeyInput so the key updates we define
-	//// later on work as intended.
-	//bool processUnbufferedKeyInput(const FrameEvent& evt)
-	//{
-	//	return true;
-	//}
-
-	//// Overriding the default processUnbufferedMouseInput so the Mouse updates we define
-	//// later on work as intended. 
-	//bool processUnbufferedMouseInput(const FrameEvent& evt)
-	//{
-	//	return true;
-	//}
 
 	bool frameStarted(const FrameEvent &evt)
 	{
-        mCanvasNode->roll(Degree(1.0) * evt.timeSinceLastFrame * 100);
-
-        mVideoTexture->nextFrame();
-
+        //mCanvasNode->roll(Degree(1.0) * evt.timeSinceLastFrame * 100);
+        mVideoCanvas->nextFrame();
+        mVideoCanvas2->nextFrame();
 
 		if(mKeyboard->isKeyDown(OIS::KC_ESCAPE))
 			return false;
@@ -64,8 +58,8 @@ protected:
 	SceneManager *mSceneMgr;   // The current SceneManager
 	SceneNode *mCamNode;   // The SceneNode the camera is currently attached to
     SceneNode *mCanvasNode;
-    OgreVideoTexture *mVideoTexture;
-	char *mBuffer;
+    OgreVideoCanvas *mVideoCanvas, *mVideoCanvas2;
+	
 };
 
 class TutorialApplication : public ExampleApplication
@@ -91,35 +85,6 @@ protected:
         
 		mSceneMgr->setAmbientLight(ColourValue(0.25, 0.25, 0.25));
 
-        float uMin = 0, vMin = 0;
-        float uMax = 640.0/1024, vMax = 480.0/1024;
-
-        mCanvas = mSceneMgr->createManualObject("video canvas");
-        mCanvas->begin("BaseWhiteNoLighting", RenderOperation::OT_TRIANGLE_STRIP);
-   
-        /*mCanvas->position(-0.65,  0.5, 0);   mCanvas->textureCoord(uMin, vMax);     mCanvas->normal(Ogre::Vector3::UNIT_Y);
-        mCanvas->position( 0.65,  0.5, 0);   mCanvas->textureCoord(uMax, vMax);     mCanvas->normal(Ogre::Vector3::UNIT_Y);
-        mCanvas->position(-0.65, -0.5, 0);   mCanvas->textureCoord(uMin, vMin);     mCanvas->normal(Ogre::Vector3::UNIT_Y);
-        mCanvas->position( 0.65, -0.5, 0);   mCanvas->textureCoord(uMax, vMin);     mCanvas->normal(Ogre::Vector3::UNIT_Y);*/
-   
-        mCanvas->position(-320,  240, 0);   mCanvas->textureCoord(uMin, vMax);     mCanvas->normal(Ogre::Vector3::NEGATIVE_UNIT_Z);
-        mCanvas->position( 320,  240, 0);   mCanvas->textureCoord(uMax, vMax);     mCanvas->normal(Ogre::Vector3::NEGATIVE_UNIT_Z);
-        mCanvas->position(-320, -240, 0);   mCanvas->textureCoord(uMin, vMin);     mCanvas->normal(Ogre::Vector3::NEGATIVE_UNIT_Z);
-        mCanvas->position( 320, -240, 0);   mCanvas->textureCoord(uMax, vMin);     mCanvas->normal(Ogre::Vector3::NEGATIVE_UNIT_Z);
-
-        mCanvas->end();
-
-
-
-        SceneNode *node = mSceneMgr->getRootSceneNode()->createChildSceneNode("Canvas Node", Vector3(0, 100, 0));
-        node->attachObject(mCanvas);
-        //node->scale(100, 100, 100);
-        node->yaw(Degree(180.0));
-        node->roll(Degree(180.0));
-        mCanvasNode = node;
-
-
-
 		Light *light = mSceneMgr->createLight("Light1");
 		light->setType(Light::LT_POINT);
 		light->setPosition(Vector3(0, 300, 600));
@@ -128,32 +93,51 @@ protected:
 
 		// Create the scene node
 		SceneNode *yawnode = mSceneMgr->getRootSceneNode()->createChildSceneNode("YawCamNode1");
-		node = yawnode->createChildSceneNode("CamNode1", Vector3(0, 100, 1000));
+        Ogre::SceneNode *node = yawnode->createChildSceneNode("CamNode1", Vector3(0, 100, 1000));
 		node->attachObject(mCamera);
 
 
-        mVideoTexture = new OgreVideoTexture("liege.avi");
-        mCanvas->setMaterialName(0, mVideoTexture->getMaterialName());
-        
+        mCanvasNode = mSceneMgr->getRootSceneNode()->createChildSceneNode("Canvas Node", Vector3(0, 100, 0));       
+        mVideoCanvas = new OgreVideoCanvas("liege.avi", mSceneMgr);
+        mVideoCanvas->buildCanvas(mCanvasNode);
+
+
+        mCanvasNode2 = mSceneMgr->getRootSceneNode()->createChildSceneNode("Canvas Node2", Vector3(700, 100, 0));       
+        mVideoCanvas2 = new OgreVideoCanvas("indochine.avi", mSceneMgr);
+        mVideoCanvas2->buildCanvas(mCanvasNode2);
 	}
-
-
-
 
 
 
 	void createFrameListener(void)
 	{
 		// Create the FrameListener
-		mFrameListener = new TutorialFrameListener(mWindow, mCamera, mSceneMgr, mCanvasNode, mVideoTexture);
+		mFrameListener = 
+            new TutorialFrameListener(mWindow, mCamera, mSceneMgr
+                                    , mCanvasNode, mVideoCanvas, mVideoCanvas2);
 		mRoot->addFrameListener(mFrameListener);
 	}
 
 protected:
-    SceneNode *mCanvasNode;
-    ManualObject *mCanvas;
-    OgreVideoTexture *mVideoTexture;
+    SceneNode *mCanvasNode, *mCanvasNode2;
+    //typedef VideoCanvasItem std::pair<String, OgreVideoCanvas*>;
+    //std::map<String, OgreVideoCanvas*> mVideoCanvases;
+    OgreVideoCanvas *mVideoCanvas;
+    OgreVideoCanvas *mVideoCanvas2;
 };
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 #if OGRE_PLATFORM == PLATFORM_WIN32 || OGRE_PLATFORM == OGRE_PLATFORM_WIN32
 #define WIN32_LEAN_AND_MEAN

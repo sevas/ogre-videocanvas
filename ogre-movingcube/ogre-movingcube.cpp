@@ -22,11 +22,10 @@ public:
 
 		// set the rotation and move speed
 		mRotate = 0.13;
-		mMove = 250;
+		mMoveSpeed = 500;
 
 		mCanvasNode = canvasNode;
         mVideoTexture = _videoTexture;
-	
 	}
 
 	//// Overriding the default processUnbufferedKeyInput so the key updates we define
@@ -45,13 +44,9 @@ public:
 
 	bool frameStarted(const FrameEvent &evt)
 	{
-		//mCamNode->getParentSceneNode()->yaw(Degree(1.0) * evt.timeSinceLastFrame * 200, SceneNode::TS_PARENT);
-        //mCanvasNode->roll(Degree(1.0) * evt.timeSinceLastFrame * 100);
+        mCanvasNode->roll(Degree(1.0) * evt.timeSinceLastFrame * 100);
 
         mVideoTexture->nextFrame();
-
-		mMouse->capture();
-		mKeyboard->capture();
 
 
 		if(mKeyboard->isKeyDown(OIS::KC_ESCAPE))
@@ -96,28 +91,29 @@ protected:
         
 		mSceneMgr->setAmbientLight(ColourValue(0.25, 0.25, 0.25));
 
-
-        mCanvas = mSceneMgr->createManualObject("video canvas");
-        mCanvas->begin("BaseWhiteNoLighting", RenderOperation::OT_TRIANGLE_STRIP);
-        //mCanvas->position(-0.65,  0.5, 0);   mCanvas->textureCoord(    0, 0.9375);
-        //mCanvas->position( 0.65,  0.5, 0);   mCanvas->textureCoord(0.625, 0.9375);
-        //mCanvas->position(-0.65, -0.5, 0);   mCanvas->textureCoord(    0,      0);
-        //mCanvas->position( 0.65, -0.5, 0);   mCanvas->textureCoord(0.625,      0);
-
-    
         float uMin = 0, vMin = 0;
         float uMax = 640.0/1024, vMax = 480.0/1024;
 
-        mCanvas->position(-0.65,  0.5, 0);   mCanvas->textureCoord(uMin, vMax);
-        mCanvas->position( 0.65,  0.5, 0);   mCanvas->textureCoord(uMax, vMax);
-        mCanvas->position(-0.65, -0.5, 0);   mCanvas->textureCoord(uMin, vMin);
-        mCanvas->position( 0.65, -0.5, 0);   mCanvas->textureCoord(uMax, vMin);
+        mCanvas = mSceneMgr->createManualObject("video canvas");
+        mCanvas->begin("BaseWhiteNoLighting", RenderOperation::OT_TRIANGLE_STRIP);
+   
+        /*mCanvas->position(-0.65,  0.5, 0);   mCanvas->textureCoord(uMin, vMax);     mCanvas->normal(Ogre::Vector3::UNIT_Y);
+        mCanvas->position( 0.65,  0.5, 0);   mCanvas->textureCoord(uMax, vMax);     mCanvas->normal(Ogre::Vector3::UNIT_Y);
+        mCanvas->position(-0.65, -0.5, 0);   mCanvas->textureCoord(uMin, vMin);     mCanvas->normal(Ogre::Vector3::UNIT_Y);
+        mCanvas->position( 0.65, -0.5, 0);   mCanvas->textureCoord(uMax, vMin);     mCanvas->normal(Ogre::Vector3::UNIT_Y);*/
+   
+        mCanvas->position(-320,  240, 0);   mCanvas->textureCoord(uMin, vMax);     mCanvas->normal(Ogre::Vector3::NEGATIVE_UNIT_Z);
+        mCanvas->position( 320,  240, 0);   mCanvas->textureCoord(uMax, vMax);     mCanvas->normal(Ogre::Vector3::NEGATIVE_UNIT_Z);
+        mCanvas->position(-320, -240, 0);   mCanvas->textureCoord(uMin, vMin);     mCanvas->normal(Ogre::Vector3::NEGATIVE_UNIT_Z);
+        mCanvas->position( 320, -240, 0);   mCanvas->textureCoord(uMax, vMin);     mCanvas->normal(Ogre::Vector3::NEGATIVE_UNIT_Z);
+
         mCanvas->end();
+
 
 
         SceneNode *node = mSceneMgr->getRootSceneNode()->createChildSceneNode("Canvas Node", Vector3(0, 100, 0));
         node->attachObject(mCanvas);
-        node->scale(100, 100, 100);
+        //node->scale(100, 100, 100);
         node->yaw(Degree(180.0));
         node->roll(Degree(180.0));
         mCanvasNode = node;
@@ -126,17 +122,17 @@ protected:
 
 		Light *light = mSceneMgr->createLight("Light1");
 		light->setType(Light::LT_POINT);
-		light->setPosition(Vector3(250, 150, 250));
+		light->setPosition(Vector3(0, 300, 600));
 		light->setDiffuseColour(ColourValue::White);
 		light->setSpecularColour(ColourValue::White);
 
 		// Create the scene node
 		SceneNode *yawnode = mSceneMgr->getRootSceneNode()->createChildSceneNode("YawCamNode1");
-		node = yawnode->createChildSceneNode("CamNode1", Vector3(0, 100, 400));
+		node = yawnode->createChildSceneNode("CamNode1", Vector3(0, 100, 1000));
 		node->attachObject(mCamera);
 
 
-        mVideoTexture = new OgreVideoTexture("indochine.avi");
+        mVideoTexture = new OgreVideoTexture("liege.avi");
         mCanvas->setMaterialName(0, mVideoTexture->getMaterialName());
         
 	}

@@ -1,12 +1,14 @@
 #include "OgreVideoTexture.h"
 
 #include <boost/format.hpp>
+#include <cstring>
 
 //------------------------------------------------------------------------------
 OgreVideoTexture::OgreVideoTexture(const Ogre::String _filename)
     :mVideoFileName(_filename)
-    ,mVideoStream(NULL)
+    ,mCvCapture(NULL)
     ,mCurrentVideoFrame(NULL)
+    ,mCurrentFrameIndex(0)
 {
     mLog = Ogre::LogManager::getSingletonPtr()->createLog("OgreVideoTexture.log");
     _init();
@@ -14,46 +16,80 @@ OgreVideoTexture::OgreVideoTexture(const Ogre::String _filename)
 //------------------------------------------------------------------------------
 OgreVideoTexture::~OgreVideoTexture(void)
 {
+    _endCapture();
+    _destroyTexture();
 }
 //------------------------------------------------------------------------------
 void OgreVideoTexture::_init()
 {
     mLog->logMessage("init");
     
-    // OpenCv crap
-    Ogre::String fullName = Ogre::String("../media/videos/") + mVideoFileName;
-    mVideoStream = cvCreateFileCapture(fullName.c_str());
 
-    mLog->logMessage("openned " + fullName);
-
-    _createTextureFromCapture(mVideoStream);
+    _initCapture();
+    _createTextureFromCapture(mCvCapture);
 
     // set first frame
-    cvGrabFrame(mVideoStream);
-    cvGrabFrame(mVideoStream);
-    mCurrentVideoFrame = cvRetrieveFrame(mVideoStream);
+    mCurrentVideoFrame = cvQueryFrame(mCvCapture);
+    mCurrentFrameIndex++;
 
     _updateTextureFromImage(mCurrentVideoFrame);
 
     mMaterialName = "Video Texture "+ mVideoFileName;
     mTimeSinceLastUpdate.reset();
 
-    mFrameCount = cvGetCaptureProperty(mVideoStream, CV_CAP_PROP_FRAME_COUNT);
-    mCurrentFrameIndex = 2;
-
+     
     mLog->logMessage("init done");
+}
+//------------------------------------------------------------------------------
+void OgreVideoTexture::_initCapture()
+{
+    Ogre::String fullName = Ogre::String("../media/videos/") + mVideoFileName;
+    mCvCapture = cvCreateFileCapture(fullName.c_str());
+    mFrameCount = cvGetCaptureProperty(mCvCapture, CV_CAP_PROP_FRAME_COUNT);
+
+    // skip first frame
+    cvGrabFrame(mCvCapture);
+    mCurrentFrameIndex++;
+
+    mLog->logMessage("openned " + fullName);
+}
+//------------------------------------------------------------------------------
+void OgreVideoTexture::_endCapture()
+{
+    cvReleaseCapture(&mCvCapture);
+    mCurrentFrameIndex = 0;
+    mCurrentVideoFrame = NULL;
+    mCvCapture = NULL;
+    mLog->logMessage("video file" + mVideoFileName + "ended");
+}
+//------------------------------------------------------------------------------
+void OgreVideoTexture::_reinitCapture()
+{
+    cvSetCaptureProperty(mCvCapture, CV_CAP_PROP_POS_MSEC, 0.0);
+    
+    cvGrabFrame(mCvCapture);
+    mCurrentFrameIndex = 1;
 }
 //------------------------------------------------------------------------------
 void OgreVideoTexture::nextFrame()
 {
-    if (mTimeSinceLastUpdate.getMilliseconds() > 37 &&
-        mCurrentFrameIndex < mFrameCount) 
+    if (mCurrentFrameIndex < mFrameCount)
     {
-        cvGrabFrame(mVideoStream);
-        mCurrentVideoFrame = cvRetrieveFrame(mVideoStream);
-        _updateTextureFromImage(mCurrentVideoFrame);
-        mTimeSinceLastUpdate.reset();
-        mCurrentFrameIndex++;
+        if (mTimeSinceLastUpdate.getMilliseconds() > 30)
+            
+        {
+            mCurrentVideoFrame = cvQueryFrame(mCvCapture);
+            _updateTextureFromImage(mCurrentVideoFrame);
+            mTimeSinceLastUpdate.reset();
+            mCurrentFrameIndex++;
+        }
+    }
+    else
+    {
+        // reinit
+        _reinitCapture();
+        //_endCapture();
+        //_initCapture();
     }
 }
 //------------------------------------------------------------------------------
@@ -72,8 +108,8 @@ void OgreVideoTexture::_createTextureFromCapture(CvCapture *_capture)
         Ogre::TEX_TYPE_2D,      // type
         1024, 1024,         // width & height
         0,                // number of mipmaps
-        Ogre::PF_BYTE_RGBA,
-        Ogre::TU_DYNAMIC_WRITE_ONLY_DISCARDABLE);     
+        Ogre::PF_BYTE_BGR,
+        Ogre::TU_DYNAMIC_WRITE_ONLY_DISCARDABLE);
 
     _initTexture(mVideoTexture);
 
@@ -83,8 +119,13 @@ void OgreVideoTexture::_createTextureFromCapture(CvCapture *_capture)
         Ogre::ResourceGroupManager::DEFAULT_RESOURCE_GROUP_NAME);
 
     mVideoMaterial->getTechnique(0)->getPass(0)->createTextureUnitState("DynamicTexture");
-    mVideoMaterial->getTechnique(0)->getPass(0)->setSceneBlending(Ogre::SBT_TRANSPARENT_ALPHA);
+    //mVideoMaterial->getTechnique(0)->getPass(0)->setSceneBlending(Ogre::SBT_TRANSPARENT_ALPHA);
 
+}
+//------------------------------------------------------------------------------
+void OgreVideoTexture::_destroyTexture()
+{
+    //TODO
 }
 //------------------------------------------------------------------------------
 void OgreVideoTexture::_initTexture(Ogre::TexturePtr _texture)
@@ -98,8 +139,6 @@ void OgreVideoTexture::_initTexture(Ogre::TexturePtr _texture)
 
     Ogre::uint8* pDest = static_cast<Ogre::uint8*>(pixelBox.data);
 
-    // Fill in some pixel data. This will give a semi-transparent blue,
-    // but this is of course dependent on the chosen pixel format.
     for (size_t j = 0; j < _texture->getHeight(); j++)
         for(size_t i = 0; i < _texture->getWidth() ; i++)
         {
@@ -118,8 +157,7 @@ void OgreVideoTexture::_initTexture(Ogre::TexturePtr _texture)
             }
 
         }
-
-        // Unlock the pixel buffer
+ 
         pixelBuffer->unlock();
 }
 //------------------------------------------------------------------------------
@@ -129,14 +167,81 @@ void OgreVideoTexture::_updateTextureFromImage(const IplImage *_image)
     // Get the pixel buffer
     Ogre::HardwarePixelBufferSharedPtr pixelBuffer = mVideoTexture->getBuffer();
 
+    //_copyImagePerChannel(_image, pixelBuffer);
+    //_copyImagePerLine(_image, pixelBuffer);
+    _copyImagePerPixel(_image, pixelBuffer);
+
+
+    boost::format fmt("%1% (%2%) : %3% µs");
+    
+    fmt % "write to texture" 
+        % mCurrentFrameIndex
+        % mTimer.getMicroseconds();
+    
+    mLog->logMessage(fmt.str());
+}
+//------------------------------------------------------------------------------
+void OgreVideoTexture::_copyImagePerLine(const IplImage *_image
+                                        ,Ogre::HardwarePixelBufferSharedPtr _pixelBuffer)
+{
+
     // Lock the pixel buffer and get a pixel box
-    pixelBuffer->lock(Ogre::HardwareBuffer::HBL_NORMAL); // for best performance use HBL_DISCARD!
-    const Ogre::PixelBox& pixelBox = pixelBuffer->getCurrentLock();
+    _pixelBuffer->lock(Ogre::HardwareBuffer::HBL_DISCARD); // for best performance use HBL_DISCARD!
+    const Ogre::PixelBox& pixelBox = _pixelBuffer->getCurrentLock();
+
+    //Ogre::uint32* pDest = static_cast<Ogre::uint32*>(pixelBox.data);
+    Ogre::uint8* pDest = static_cast<Ogre::uint8*>(pixelBox.data);
+
+    for (size_t i = 0 ; i < _image->height ; i++)
+    {
+    memcpy(pDest + i*1024*4
+          , (_image->imageData) +   i*_image->width * 3
+          , _image->width * 3);
+    }
+
+    _pixelBuffer->unlock();
+}
+//------------------------------------------------------------------------------
+void OgreVideoTexture::_copyImagePerPixel(const IplImage *_image
+                                         ,Ogre::HardwarePixelBufferSharedPtr _pixelBuffer)
+{
+    // Lock the pixel buffer and get a pixel box
+    _pixelBuffer->lock(Ogre::HardwareBuffer::HBL_DISCARD); // for best performance use HBL_DISCARD!
+    const Ogre::PixelBox& pixelBox = _pixelBuffer->getCurrentLock();
+
+    Ogre::uint32* pDest = static_cast<Ogre::uint32*>(pixelBox.data);
+    
+    size_t w, h, widthStep;
+    w = _image->width;
+    h = _image->height;
+    widthStep = _image->widthStep;
+
+    Ogre::uint32 pixelBGRA;
+    for(size_t i=0 ; i < h ; i++)
+    {
+        size_t offset = i*widthStep;
+        for (size_t j=0 ; j < w ; j++)
+        {
+            memcpy(&pixelBGRA, _image->imageData + offset +j*3, sizeof(Ogre::uint32));            
+            pDest[i *1024 + j] = pixelBGRA;            
+        }
+    }
+   
+    _pixelBuffer->unlock();
+}
+//------------------------------------------------------------------------------
+void OgreVideoTexture::_copyImagePerChannel(const IplImage *_image
+                                         ,Ogre::HardwarePixelBufferSharedPtr _pixelBuffer)
+{
+
+    // Lock the pixel buffer and get a pixel box
+    _pixelBuffer->lock(Ogre::HardwareBuffer::HBL_DISCARD); // for best performance use HBL_DISCARD!
+    const Ogre::PixelBox& pixelBox = _pixelBuffer->getCurrentLock();
+
     
     Ogre::uint8* pDest = static_cast<Ogre::uint8*>(pixelBox.data);
 
-    // Fill in some pixel data. This will give a semi-transparent blue,
-    // but this is of course dependent on the chosen pixel format.
+
     for (size_t j = 0; j < _image->height; j++)
         for(size_t i = 0; i < _image->width ; i++)
         {
@@ -146,18 +251,11 @@ void OgreVideoTexture::_updateTextureFromImage(const IplImage *_image)
 
             int w = mVideoTexture->getWidth();
 
-            pDest[j*w*4 + i*4]   = pixelB;
-            pDest[j*w*4 + i*4+1] = pixelG;
-            pDest[j*w*4 + i*4+2] = pixelR;
-            pDest[j*w*4 + i*4+3] = 255;
+            pDest[j*1024*4 + i*4]   = pixelB;
+            pDest[j*1024*4 + i*4+1] = pixelG;
+            pDest[j*1024*4 + i*4+2] = pixelR;
+            //pDest[j*w*4 + i*4+3] = 255;
         }
 
-    // Unlock the pixel buffer
-    pixelBuffer->unlock();
-
-    boost::format fmt("%1% : %2% µs");
-    
-    fmt % "write to texture" % mTimer.getMicroseconds();
-    
-    mLog->logMessage(fmt.str());
+    _pixelBuffer->unlock();
 }

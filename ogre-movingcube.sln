@@ -2,6 +2,11 @@
 Microsoft Visual Studio Solution File, Format Version 10.00
 # Visual Studio 2008
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ogre-movingcube", "ogre-movingcube\ogre-movingcube.vcproj", "{66616D12-AD9C-42C9-8685-99CD59E7BEC3}"
+	ProjectSection(ProjectDependencies) = postProject
+		{6DC85AAB-1822-4031-BCD6-7F54ECAABC37} = {6DC85AAB-1822-4031-BCD6-7F54ECAABC37}
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "OgreVideoCanvas", "OgreVideoCanvas\OgreVideoCanvas.vcproj", "{6DC85AAB-1822-4031-BCD6-7F54ECAABC37}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -13,6 +18,10 @@ Global
 		{66616D12-AD9C-42C9-8685-99CD59E7BEC3}.Debug|Win32.Build.0 = Debug|Win32
 		{66616D12-AD9C-42C9-8685-99CD59E7BEC3}.Release|Win32.ActiveCfg = Release|Win32
 		{66616D12-AD9C-42C9-8685-99CD59E7BEC3}.Release|Win32.Build.0 = Release|Win32
+		{6DC85AAB-1822-4031-BCD6-7F54ECAABC37}.Debug|Win32.ActiveCfg = Debug|Win32
+		{6DC85AAB-1822-4031-BCD6-7F54ECAABC37}.Debug|Win32.Build.0 = Debug|Win32
+		{6DC85AAB-1822-4031-BCD6-7F54ECAABC37}.Release|Win32.ActiveCfg = Release|Win32
+		{6DC85AAB-1822-4031-BCD6-7F54ECAABC37}.Release|Win32.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

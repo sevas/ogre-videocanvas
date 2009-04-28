@@ -2,9 +2,9 @@
 <VisualStudioProject
 	ProjectType="Visual C++"
 	Version="9,00"
-	Name="ogre-movingcube"
+	Name="ogre-testscene"
 	ProjectGUID="{66616D12-AD9C-42C9-8685-99CD59E7BEC3}"
-	RootNamespace="ogremovingcube"
+	RootNamespace="ogretestscene"
 	Keyword="Win32Proj"
 	TargetFrameworkVersion="196613"
 	>
@@ -177,7 +177,7 @@
 			UniqueIdentifier="{4FC737F1-C7A5-4376-A066-2A32D752A2FF}"
 			>
 			<File
-				RelativePath=".\ogre-movingcube.cpp"
+				RelativePath=".\ogre-testscene.cpp"
 				>
 			</File>
 		</Filter>

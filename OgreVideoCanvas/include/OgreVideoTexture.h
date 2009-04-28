@@ -24,21 +24,23 @@ protected:
     void _initTexture(Ogre::TexturePtr);
     void _updateTextureFromImage(const IplImage*);
     void _destroyTexture();
-
    
     inline void _copyImagePerLine(const IplImage*, Ogre::HardwarePixelBufferSharedPtr);
     inline void _copyImagePerPixel(const IplImage*, Ogre::HardwarePixelBufferSharedPtr);
     inline void _copyImagePerChannel(const IplImage*, Ogre::HardwarePixelBufferSharedPtr);
 
+    void _logMessage(const Ogre::String&);
+
 protected:
-    Ogre::String mVideoFileName;
+    Ogre::String mVideoFileName, mVideoBaseName;
+    Ogre::String mTextureName, mMaterialName;
     CvCapture *mCvCapture;
     IplImage *mCurrentVideoFrame;
     Ogre::TexturePtr mVideoTexture;
     Ogre::MaterialPtr mVideoMaterial;
-    Ogre::String mTextureName, mMaterialName;
     Ogre::Timer mTimeSinceLastUpdate;
     int mFrameCount, mCurrentFrameIndex;
-    Ogre::Log *mLog;
     Ogre::Timer mTimer;
+    Ogre::Log *mLog;
+    bool mIsLoggingEvents;
 };

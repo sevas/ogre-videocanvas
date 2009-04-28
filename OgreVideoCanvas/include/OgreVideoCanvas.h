@@ -19,7 +19,7 @@ protected:
 
 protected:
     SceneManager *mSceneMgr;
-    String mVideoFileName;
+    String mVideoFileName, mVideoBaseName;
     SceneNode *mCanvasNode;
     ManualObject *mCanvas;
     OgreVideoTexture *mVideoTexture;

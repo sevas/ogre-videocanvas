@@ -9,10 +9,17 @@ OgreVideoTexture::OgreVideoTexture(const Ogre::String _filename)
     ,mCvCapture(NULL)
     ,mCurrentVideoFrame(NULL)
     ,mCurrentFrameIndex(0)
+    ,mLog(NULL)
+    ,mIsLoggingEvents(false)
 {
-    mLog = Ogre::LogManager::getSingletonPtr()->createLog("OgreVideoTexture_"+_filename+".log");
-    mMaterialName = "Video Material "+ mVideoFileName;
-    mTextureName = "Video Texture " + mVideoFileName;
+    Ogre::String out;
+    Ogre::StringUtil::splitFilename(mVideoFileName, mVideoBaseName, out);
+
+    mMaterialName = "Video Material "+ mVideoBaseName;
+    mTextureName = "Video Texture " + mVideoBaseName;
+    if (mIsLoggingEvents)
+        mLog = Ogre::LogManager::getSingletonPtr()->createLog("OgreVideoTexture_"+mVideoBaseName+".log");
+    
     _init();
 }
 //------------------------------------------------------------------------------
@@ -24,7 +31,7 @@ OgreVideoTexture::~OgreVideoTexture(void)
 //------------------------------------------------------------------------------
 void OgreVideoTexture::_init()
 {
-    mLog->logMessage("init");
+    _logMessage("init");
     
 
     _initCapture();
@@ -40,20 +47,20 @@ void OgreVideoTexture::_init()
     mTimeSinceLastUpdate.reset();
 
      
-    mLog->logMessage("init done");
+    _logMessage("init done");
 }
 //------------------------------------------------------------------------------
 void OgreVideoTexture::_initCapture()
 {
-    Ogre::String fullName = Ogre::String("../media/videos/") + mVideoFileName;
-    mCvCapture = cvCreateFileCapture(fullName.c_str());
+    
+    mCvCapture = cvCreateFileCapture(mVideoFileName.c_str());
     mFrameCount = cvGetCaptureProperty(mCvCapture, CV_CAP_PROP_FRAME_COUNT);
 
     // skip first frame
     cvGrabFrame(mCvCapture);
     mCurrentFrameIndex++;
 
-    mLog->logMessage("openned " + fullName);
+    _logMessage("openned " + mVideoFileName);
 }
 //------------------------------------------------------------------------------
 void OgreVideoTexture::_endCapture()
@@ -62,7 +69,8 @@ void OgreVideoTexture::_endCapture()
     mCurrentFrameIndex = 0;
     mCurrentVideoFrame = NULL;
     mCvCapture = NULL;
-    mLog->logMessage("video file" + mVideoFileName + "ended");
+    
+    _logMessage("video file" + mVideoFileName + "ended");
 }
 //------------------------------------------------------------------------------
 void OgreVideoTexture::_reinitCapture()
@@ -88,10 +96,7 @@ void OgreVideoTexture::nextFrame()
     }
     else
     {
-        // reinit
         _reinitCapture();
-        //_endCapture();
-        //_initCapture();
     }
 }
 //------------------------------------------------------------------------------
@@ -158,7 +163,6 @@ void OgreVideoTexture::_initTexture(Ogre::TexturePtr _texture)
                 *pDest++ = 0;   // G
                 *pDest++ = 0; // R
             }
-
         }
  
         pixelBuffer->unlock();
@@ -166,7 +170,9 @@ void OgreVideoTexture::_initTexture(Ogre::TexturePtr _texture)
 //------------------------------------------------------------------------------
 void OgreVideoTexture::_updateTextureFromImage(const IplImage *_image)
 {
-    mTimer.reset();
+    if (mIsLoggingEvents)
+        mTimer.reset();
+    
     // Get the pixel buffer
     Ogre::HardwarePixelBufferSharedPtr pixelBuffer = mVideoTexture->getBuffer();
 
@@ -174,14 +180,17 @@ void OgreVideoTexture::_updateTextureFromImage(const IplImage *_image)
     //_copyImagePerLine(_image, pixelBuffer);
     _copyImagePerPixel(_image, pixelBuffer);
 
-
-    boost::format fmt("%1% (%2%) : %3% µs");
     
-    fmt % "write to texture" 
-        % mCurrentFrameIndex
-        % mTimer.getMicroseconds();
-    
-    mLog->logMessage(fmt.str());
+    if (mIsLoggingEvents)
+    {        
+        boost::format fmt("%1% (%2%) : %3% µs");
+        
+        fmt % "write to texture" 
+            % mCurrentFrameIndex
+            % mTimer.getMicroseconds();
+        
+        _logMessage(fmt.str());
+    }
 }
 //------------------------------------------------------------------------------
 void OgreVideoTexture::_copyImagePerLine(const IplImage *_image
@@ -261,4 +270,10 @@ void OgreVideoTexture::_copyImagePerChannel(const IplImage *_image
         }
 
     _pixelBuffer->unlock();
+}
+//------------------------------------------------------------------------------
+void OgreVideoTexture::_logMessage(const Ogre::String &_msg)
+{
+    if (mIsLoggingEvents)
+        mLog->logMessage(_msg);
 }

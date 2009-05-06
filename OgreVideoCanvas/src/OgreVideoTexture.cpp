@@ -85,7 +85,7 @@ void OgreVideoTexture::nextFrame()
 {
     if (mCurrentFrameIndex < mFrameCount)
     {
-        if (mTimeSinceLastUpdate.getMilliseconds() > 30)
+        if (mTimeSinceLastUpdate.getMilliseconds() > 20)
             
         {
             mCurrentVideoFrame = cvQueryFrame(mCvCapture);

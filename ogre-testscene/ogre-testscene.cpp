@@ -13,10 +13,13 @@
 class TutorialFrameListener : public ExampleFrameListener
 {
 public:
-    TutorialFrameListener(RenderWindow* win, Camera* cam, SceneManager *sceneMgr
-                          , SceneNode *canvasNode
-                          , OgreVideoCanvas *_videoCanvas
-                          , OgreVideoCanvas *_videoCanvas2)
+    TutorialFrameListener( RenderWindow* win
+                         , Camera* cam
+                         , SceneManager *sceneMgr
+                         , SceneNode *_canvasNode
+                         , SceneNode *_canvasNode2
+                         , OgreVideoCanvas *_videoCanvas
+                         , OgreVideoCanvas *_videoCanvas2)
 		: ExampleFrameListener(win, cam, false, false)
 	{
 		// key and mouse state tracking
@@ -31,7 +34,8 @@ public:
 		mRotate = 0.13;
 		mMoveSpeed = 500;
 
-		mCanvasNode = canvasNode;
+        mCanvasNode2 = _canvasNode2;
+		mCanvasNode = _canvasNode;
         mVideoCanvas = _videoCanvas;
         mVideoCanvas2 = _videoCanvas2;
 	}
@@ -39,7 +43,9 @@ public:
 
 	bool frameStarted(const FrameEvent &evt)
 	{
-        //mCanvasNode->roll(Degree(1.0) * evt.timeSinceLastFrame * 100);
+        mCanvasNode->roll(Degree(1.0) * evt.timeSinceLastFrame * 100);
+        mCanvasNode2->roll(-Degree(1.0) * evt.timeSinceLastFrame * 100);
+
         mVideoCanvas->nextFrame();
         mVideoCanvas2->nextFrame();
 
@@ -57,7 +63,7 @@ protected:
 	Real mMove;            // The movement constant
 	SceneManager *mSceneMgr;   // The current SceneManager
 	SceneNode *mCamNode;   // The SceneNode the camera is currently attached to
-    SceneNode *mCanvasNode;
+    SceneNode *mCanvasNode, *mCanvasNode2;
     OgreVideoCanvas *mVideoCanvas, *mVideoCanvas2;
 	
 };
@@ -100,11 +106,15 @@ protected:
         mCanvasNode = mSceneMgr->getRootSceneNode()->createChildSceneNode("Canvas Node", Vector3(0, 100, 0));       
         mVideoCanvas = new OgreVideoCanvas("../media/videos/liege.avi", mSceneMgr);
         mVideoCanvas->buildCanvas(mCanvasNode);
-
+        mVideoTexture = new OgreVideoTexture("../media/videos/liege.avi");
+        mVideoCanvas->setVideoTexture(mVideoTexture);
 
         mCanvasNode2 = mSceneMgr->getRootSceneNode()->createChildSceneNode("Canvas Node2", Vector3(700, 100, 0));       
         mVideoCanvas2 = new OgreVideoCanvas("../media/videos/indochine.avi", mSceneMgr);
         mVideoCanvas2->buildCanvas(mCanvasNode2);
+        mVideoTexture2 = new OgreVideoTexture("../media/videos/indochine.avi");
+        mVideoCanvas2->setVideoTexture(mVideoTexture2);
+
 	}
 
 
@@ -114,7 +124,8 @@ protected:
 		// Create the FrameListener
 		mFrameListener = 
             new TutorialFrameListener(mWindow, mCamera, mSceneMgr
-                                    , mCanvasNode, mVideoCanvas, mVideoCanvas2);
+                                    , mCanvasNode, mCanvasNode2
+                                    , mVideoCanvas, mVideoCanvas2);
 		mRoot->addFrameListener(mFrameListener);
 	}
 
@@ -124,6 +135,7 @@ protected:
     //std::map<String, OgreVideoCanvas*> mVideoCanvases;
     OgreVideoCanvas *mVideoCanvas;
     OgreVideoCanvas *mVideoCanvas2;
+    OgreVideoTexture *mVideoTexture, *mVideoTexture2;
 };
 
 

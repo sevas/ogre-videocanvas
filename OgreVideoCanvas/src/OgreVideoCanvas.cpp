@@ -41,13 +41,27 @@ void OgreVideoCanvas::buildCanvas(SceneNode *_parentNode)
     mCanvasNode->yaw(Degree(180.0));
     mCanvasNode->roll(Degree(180.0));
 
-    mVideoTexture = new OgreVideoTexture(mVideoFileName);
-    mCanvas->setMaterialName(0, mVideoTexture->getMaterialName());
-    
+     mCanvas->setMaterialName(0, "VideoCanvas/NoVideo");
 }
-//--------------------------------------------------------------------------------
+//------------------------------------------------------------------------------
 void OgreVideoCanvas::nextFrame()
 {
-    mVideoTexture->nextFrame();
+    if (mVideoTexture)
+        mVideoTexture->nextFrame();
 }
-//--------------------------------------------------------------------------------
+//------------------------------------------------------------------------------
+void OgreVideoCanvas::setVideoTexture(OgreVideoTexture *_videoTexture)
+{
+    if (_videoTexture && _videoTexture != mVideoTexture)
+    {
+        mVideoTexture = _videoTexture;
+        mCanvas->setMaterialName(0, mVideoTexture->getMaterialName());
+    }
+}
+//------------------------------------------------------------------------------
+void OgreVideoCanvas::unsetVideoTexture()
+{
+    mVideoTexture = NULL;
+    mCanvas->setMaterialName(0, "VideoCanvas/NoVideo");
+}
+//------------------------------------------------------------------------------

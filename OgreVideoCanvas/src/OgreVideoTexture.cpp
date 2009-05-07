@@ -100,6 +100,11 @@ void OgreVideoTexture::nextFrame()
     }
 }
 //------------------------------------------------------------------------------
+void OgreVideoTexture::resetVideo()
+{
+    _reinitCapture();
+}
+//------------------------------------------------------------------------------
 void OgreVideoTexture::_createTextureFromCapture(CvCapture *_capture)
 {
 

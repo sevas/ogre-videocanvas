@@ -13,6 +13,9 @@ public:
 
     void buildCanvas(SceneNode*);
     void nextFrame();
+    void pauseVideo();
+    void setVideoTexture(OgreVideoTexture*);
+    void unsetVideoTexture();
 
 protected:
     void _initVideoTexture(){};

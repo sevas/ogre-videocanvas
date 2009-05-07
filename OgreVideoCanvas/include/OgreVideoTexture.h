@@ -14,6 +14,7 @@ public:
     ~OgreVideoTexture(void);
     Ogre::String getMaterialName() const { return mVideoMaterial->getName();};
     void nextFrame();
+    void resetVideo();
 
 protected:
     void _init();
@@ -34,11 +35,13 @@ protected:
 protected:
     Ogre::String mVideoFileName, mVideoBaseName;
     Ogre::String mTextureName, mMaterialName;
-    CvCapture *mCvCapture;
-    IplImage *mCurrentVideoFrame;
     Ogre::TexturePtr mVideoTexture;
     Ogre::MaterialPtr mVideoMaterial;
     Ogre::Timer mTimeSinceLastUpdate;
+
+    CvCapture *mCvCapture;
+    IplImage *mCurrentVideoFrame;
+
     int mFrameCount, mCurrentFrameIndex;
     Ogre::Timer mTimer;
     Ogre::Log *mLog;

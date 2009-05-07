@@ -110,13 +110,13 @@ protected:
 
 
         mCanvasNode = mSceneMgr->getRootSceneNode()->createChildSceneNode("Canvas Node", Vector3(0, 100, 0));       
-        mVideoCanvas = new OgreVideoCanvas("../media/videos/liege.avi", mSceneMgr);
+        mVideoCanvas = new OgreVideoCanvas("liege", mSceneMgr);
         mVideoCanvas->buildCanvas(mCanvasNode);
         mVideoTexture = new OgreVideoTexture("../media/videos/liege.avi");
         mVideoCanvas->setVideoTexture(mVideoTexture);
 
         mCanvasNode2 = mSceneMgr->getRootSceneNode()->createChildSceneNode("Canvas Node2", Vector3(700, 100, 0));       
-        mVideoCanvas2 = new OgreVideoCanvas("../media/videos/indochine.avi", mSceneMgr);
+        mVideoCanvas2 = new OgreVideoCanvas("indochine", mSceneMgr);
         mVideoCanvas2->buildCanvas(mCanvasNode2);
         mVideoTexture2 = new OgreVideoTexture("../media/videos/indochine.avi");
         mVideoCanvas2->setVideoTexture(mVideoTexture2);

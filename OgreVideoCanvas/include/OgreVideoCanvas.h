@@ -17,11 +17,10 @@ public:
     void setVideoTexture(OgreVideoTexture*);
     void unsetVideoTexture();
 
-protected:
-    void _initVideoTexture(){};
 
 protected:
     SceneManager *mSceneMgr;
+    String mName;
     String mVideoFileName, mVideoBaseName;
     SceneNode *mCanvasNode;
     ManualObject *mCanvas;

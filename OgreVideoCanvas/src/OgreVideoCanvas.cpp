@@ -1,9 +1,9 @@
 #include "OgreVideoCanvas.h"
 
 //------------------------------------------------------------------------------
-OgreVideoCanvas::OgreVideoCanvas(const String &_filename, SceneManager *_sceneMgr)
+OgreVideoCanvas::OgreVideoCanvas(const String &_name, SceneManager *_sceneMgr)
     :mSceneMgr(_sceneMgr)
-    ,mVideoFileName(_filename)
+    ,mName(_name)
     ,mCanvas(NULL)
     ,mVideoTexture(NULL)
     ,mCanvasNode(NULL)
@@ -11,8 +11,7 @@ OgreVideoCanvas::OgreVideoCanvas(const String &_filename, SceneManager *_sceneMg
     ,mHeight(480)
     ,mTextureSize(1024)
 {
-    Ogre::String out;
-    Ogre::StringUtil::splitFilename(mVideoFileName, mVideoBaseName, out);
+
 }
 //------------------------------------------------------------------------------
 OgreVideoCanvas::~OgreVideoCanvas(void)
@@ -26,7 +25,8 @@ void OgreVideoCanvas::buildCanvas(SceneNode *_parentNode)
     float uMax = float(mWidth)  / mTextureSize;
     float vMax = float(mHeight) / mTextureSize;
 
-    mCanvas = mSceneMgr->createManualObject("Video Canvas " + mVideoBaseName);
+    // build a quad
+    mCanvas = mSceneMgr->createManualObject("Video Canvas " + mName);
     mCanvas->begin("BaseWhiteNoLighting", RenderOperation::OT_TRIANGLE_STRIP);
 
     mCanvas->position(-mWidth/2,  mHeight/2, 0);   mCanvas->textureCoord(uMin, vMax);     mCanvas->normal(Ogre::Vector3::NEGATIVE_UNIT_Z);
@@ -36,12 +36,14 @@ void OgreVideoCanvas::buildCanvas(SceneNode *_parentNode)
 
     mCanvas->end();
 
-    mCanvasNode = _parentNode->createChildSceneNode("Canvas Node " + mVideoBaseName);
+    // put it on a node
+    mCanvasNode = _parentNode->createChildSceneNode("Canvas Node " + mName);
     mCanvasNode ->attachObject(mCanvas);
     mCanvasNode->yaw(Degree(180.0));
     mCanvasNode->roll(Degree(180.0));
 
-     mCanvas->setMaterialName(0, "VideoCanvas/NoVideo");
+    // set default material (grey)
+    mCanvas->setMaterialName(0, "VideoCanvas/NoVideo");
 }
 //------------------------------------------------------------------------------
 void OgreVideoCanvas::nextFrame()

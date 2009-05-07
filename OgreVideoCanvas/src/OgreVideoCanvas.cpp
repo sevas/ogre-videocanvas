@@ -50,6 +50,12 @@ void OgreVideoCanvas::nextFrame()
         mVideoTexture->nextFrame();
 }
 //------------------------------------------------------------------------------
+void OgreVideoCanvas::resetVideo()
+{
+    if (mVideoTexture)
+        mVideoTexture->resetVideo();
+}
+//------------------------------------------------------------------------------
 void OgreVideoCanvas::setVideoTexture(OgreVideoTexture *_videoTexture)
 {
     if (_videoTexture && _videoTexture != mVideoTexture)

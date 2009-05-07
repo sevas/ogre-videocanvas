@@ -139,6 +139,8 @@ void OgreVideoTexture::_createTextureFromCapture(CvCapture *_capture)
 void OgreVideoTexture::_destroyTexture()
 {
     //TODO
+    /*Ogre::MaterialManager::getSingleton().remove(mVideoTexture);
+    Ogre::MaterialManager::getSingleton().remove(mVideoMaterial);*/
 }
 //------------------------------------------------------------------------------
 void OgreVideoTexture::_initTexture(Ogre::TexturePtr _texture)

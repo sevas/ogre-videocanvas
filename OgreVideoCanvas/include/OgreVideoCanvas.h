@@ -13,7 +13,7 @@ public:
 
     void buildCanvas(SceneNode*);
     void nextFrame();
-    void pauseVideo();
+    void resetVideo();
     void setVideoTexture(OgreVideoTexture*);
     void unsetVideoTexture();
 

@@ -52,6 +52,12 @@ public:
 		if(mKeyboard->isKeyDown(OIS::KC_ESCAPE))
 			return false;
 
+        if(mKeyboard->isKeyDown(OIS::KC_P))
+        {
+            mVideoCanvas->resetVideo();
+            mVideoCanvas2->resetVideo();
+        }
+
 		return true;
 
 	}

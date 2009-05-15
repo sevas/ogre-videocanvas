@@ -29,18 +29,19 @@ void OgreVideoCanvas::buildCanvas(SceneNode *_parentNode)
     mCanvas = mSceneMgr->createManualObject("Video Canvas " + mName);
     mCanvas->begin("BaseWhiteNoLighting", RenderOperation::OT_TRIANGLE_STRIP);
 
-    mCanvas->position(-mWidth/2,  mHeight/2, 0);   mCanvas->textureCoord(uMin, vMax);     mCanvas->normal(Ogre::Vector3::NEGATIVE_UNIT_Z);
-    mCanvas->position( mWidth/2,  mHeight/2, 0);   mCanvas->textureCoord(uMax, vMax);     mCanvas->normal(Ogre::Vector3::NEGATIVE_UNIT_Z);
-    mCanvas->position(-mWidth/2, -mHeight/2, 0);   mCanvas->textureCoord(uMin, vMin);     mCanvas->normal(Ogre::Vector3::NEGATIVE_UNIT_Z);
-    mCanvas->position( mWidth/2, -mHeight/2, 0);   mCanvas->textureCoord(uMax, vMin);     mCanvas->normal(Ogre::Vector3::NEGATIVE_UNIT_Z);
+    mCanvas->position(-mWidth/2,  mHeight/2, 0);   mCanvas->textureCoord(uMax, vMin);     mCanvas->normal(Ogre::Vector3::NEGATIVE_UNIT_Z);
+    mCanvas->position( mWidth/2,  mHeight/2, 0);   mCanvas->textureCoord(uMin, vMin);     mCanvas->normal(Ogre::Vector3::NEGATIVE_UNIT_Z);
+    mCanvas->position(-mWidth/2, -mHeight/2, 0);   mCanvas->textureCoord(uMax, vMax);     mCanvas->normal(Ogre::Vector3::NEGATIVE_UNIT_Z);
+    mCanvas->position( mWidth/2, -mHeight/2, 0);   mCanvas->textureCoord(uMin, vMax);     mCanvas->normal(Ogre::Vector3::NEGATIVE_UNIT_Z);
 
     mCanvas->end();
 
     // put it on a node
-    mCanvasNode = _parentNode->createChildSceneNode("Canvas Node " + mName);
+    //mCanvasNode = _parentNode->createChildSceneNode("Canvas Node " + mName);
+    mCanvasNode = _parentNode;
     mCanvasNode ->attachObject(mCanvas);
     mCanvasNode->yaw(Degree(180.0));
-    mCanvasNode->roll(Degree(180.0));
+    //mCanvasNode->roll(Degree(180.0));
 
     // set default material (grey)
     mCanvas->setMaterialName(0, "VideoCanvas/NoVideo");

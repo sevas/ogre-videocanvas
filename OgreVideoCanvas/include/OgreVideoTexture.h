@@ -15,6 +15,7 @@ public:
     Ogre::String getMaterialName() const { return mVideoMaterial->getName();};
     void nextFrame();
     void resetVideo();
+    void setDepthCheckEnabled(bool);
 
 protected:
     void _init();

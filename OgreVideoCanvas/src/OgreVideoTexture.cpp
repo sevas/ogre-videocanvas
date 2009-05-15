@@ -105,6 +105,12 @@ void OgreVideoTexture::resetVideo()
     _reinitCapture();
 }
 //------------------------------------------------------------------------------
+void OgreVideoTexture::setDepthCheckEnabled(bool _enabled)
+{
+    if (! mVideoMaterial.isNull())
+        mVideoMaterial->setDepthCheckEnabled(_enabled);
+}
+//------------------------------------------------------------------------------
 void OgreVideoTexture::_createTextureFromCapture(CvCapture *_capture)
 {
 

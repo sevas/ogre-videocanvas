@@ -73,3 +73,7 @@ void OgreVideoCanvas::unsetVideoTexture()
     mCanvas->setMaterialName(0, "VideoCanvas/NoVideo");
 }
 //------------------------------------------------------------------------------
+void OgreVideoCanvas::setRenderQueueGroup(Ogre::uint8 _ID)
+{
+    mCanvas->setRenderQueueGroup(_ID);
+}

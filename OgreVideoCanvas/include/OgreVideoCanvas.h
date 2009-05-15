@@ -16,6 +16,7 @@ public:
     void resetVideo();
     void setVideoTexture(OgreVideoTexture*);
     void unsetVideoTexture();
+    void setRenderQueueGroup(Ogre::uint8);
 
 
 protected:
